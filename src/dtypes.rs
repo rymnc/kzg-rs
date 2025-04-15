@@ -8,6 +8,7 @@ use bls12_381::Scalar;
 macro_rules! define_bytes_type {
     ($name:ident, $size:expr) => {
         #[derive(Debug, Clone)]
+        #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
         pub struct $name([u8; $size]);
 
         impl $name {
