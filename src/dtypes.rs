@@ -44,10 +44,32 @@ define_bytes_type!(Bytes32, 32);
 define_bytes_type!(Bytes48, 48);
 
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Blob {
-    #[cfg_attr(feature = "serde", serde(serialize_with = "serialize_bytes"))]
-    _inner: Vec<u8>
+    _inner: Box<[u8; 131072]>,
+}
+
+#[cfg(feature = "serde")]
+impl serde::Serialize for Blob {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_bytes(self._inner.as_slice())
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> serde::Deserialize<'de> for Blob {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let inner = <Vec<u8>>::deserialize(deserializer)?;
+        match inner.into_boxed_slice().try_into() {
+            Ok(v) => Ok(Self { _inner: v }),
+            Err(_) => Err(serde::de::Error::custom("Blob must be 131072 bytes long")),
+        }
+    }
 }
 
 impl Blob {
@@ -58,10 +80,12 @@ impl Blob {
             ));
         }
 
-        Ok(Blob{ _inner: slice.to_vec() })
+        let mut bytes = Box::new([0u8; BYTES_PER_BLOB]);
+        bytes.copy_from_slice(slice);
+        Ok(Blob { _inner: bytes })
     }
     pub fn as_slice(&self) -> &[u8] {
-        &self._inner
+        &*self._inner
     }
     pub fn boxed(self) -> Box<[u8; BYTES_PER_BLOB]> {
         Box::new(self.into())
@@ -69,18 +93,8 @@ impl Blob {
 }
 impl From<Blob> for [u8; BYTES_PER_BLOB] {
     fn from(value: Blob) -> [u8; BYTES_PER_BLOB] {
-        let mut bytes = [0u8; BYTES_PER_BLOB];
-        bytes.copy_from_slice(value._inner.as_slice());
-        bytes
+        *value._inner
     }
-}
-
-#[cfg(feature = "serde")]
-fn serialize_bytes<S>(bytes: &Vec<u8>, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-{
-    serializer.serialize_bytes(bytes.as_slice())
 }
 
 impl Blob {
