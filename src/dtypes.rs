@@ -9,7 +9,7 @@ macro_rules! define_bytes_type {
     ($name:ident, $size:expr) => {
         #[derive(Debug, Clone)]
         #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-        pub struct $name([u8; $size]);
+        pub struct $name(#[cfg_attr(feature = "serde", serde(with = "serde_bytes"))] [u8; $size]);
 
         impl $name {
             pub fn from_slice(slice: &[u8]) -> Result<Self, KzgError> {
