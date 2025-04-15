@@ -152,7 +152,11 @@ pub fn evaluate_polynomial_in_evaluation_form(
 ///     - \( b^{-1} = P^{-1} \times (a \times c) \)
 ///     - \( c^{-1} = P^{-1} \times (a \times b) \)
 ///
-pub fn batch_inversion(out: &mut [Scalar], a: &[Scalar], len: NonZeroUsize) -> Result<(), KzgError> {
+pub fn batch_inversion(
+    out: &mut [Scalar],
+    a: &[Scalar],
+    len: NonZeroUsize,
+) -> Result<(), KzgError> {
     if a == out {
         return Err(KzgError::BadArgs(
             "Destination is the same as source".to_string(),
@@ -218,7 +222,10 @@ pub fn verify_kzg_proof_impl(
     ))
 }
 
-pub fn validate_batched_input(commitment: &[G1Affine], proofs: &[G1Affine]) -> Result<(), KzgError> {
+pub fn validate_batched_input(
+    commitment: &[G1Affine],
+    proofs: &[G1Affine],
+) -> Result<(), KzgError> {
     // Check if any commitment is invalid (not on curve or identity)
     let invalid_commitment = commitment.iter().any(|commitment| {
         !bool::from(commitment.is_identity()) && !bool::from(commitment.is_on_curve())
