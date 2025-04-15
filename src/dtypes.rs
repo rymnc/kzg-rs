@@ -2,7 +2,7 @@ use crate::enums::KzgError;
 use crate::kzg_proof::safe_scalar_affine_from_bytes;
 use crate::{BYTES_PER_BLOB, BYTES_PER_FIELD_ELEMENT};
 
-use alloc::{string::ToString, vec::Vec};
+use alloc::{string::ToString, vec::Vec, boxed::Box};
 use bls12_381::Scalar;
 
 macro_rules! define_bytes_type {
@@ -25,6 +25,10 @@ macro_rules! define_bytes_type {
 
             pub fn as_slice(&self) -> &[u8] {
                 &self.0
+            }
+
+            pub fn boxed(self) -> Box<[u8; $size]> {
+                Box::new(self.0)
             }
         }
 
