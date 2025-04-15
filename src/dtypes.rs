@@ -37,6 +37,12 @@ macro_rules! define_bytes_type {
                 value.0
             }
         }
+
+        impl From<[u8; $size]> for $name {
+            fn from(value: [u8; $size]) -> $name {
+                $name(value)
+            }
+        }
     };
 }
 
